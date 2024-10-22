@@ -328,7 +328,7 @@
     "@syncfusion/ej2-popups" "~27.1.50"
     "@syncfusion/ej2-splitbuttons" "~27.1.50"
 
-"@syncfusion/ej2-lists@~27.1.50":
+"@syncfusion/ej2-lists@27.1.50", "@syncfusion/ej2-lists@~27.1.50":
   version "27.1.50"
   resolved "https://registry.yarnpkg.com/@syncfusion/ej2-lists/-/ej2-lists-27.1.50.tgz#ca00ba935276fc55e9063ee9ffd6984307b5060e"
   integrity sha512-CbTdJz4pz9k+/sYTeT5xJ6VZDKGzo9KF7oEeOqhXjRNm1qQd5ANonxsuOVAWLojJwhKQcfQxGTVrOjE/D+YBoA==
@@ -395,6 +395,15 @@
   dependencies:
     "@syncfusion/ej2-base" "~27.1.53"
     "@syncfusion/ej2-documenteditor" "27.1.53"
+    "@syncfusion/ej2-react-base" "~27.1.50"
+
+"@syncfusion/ej2-react-lists@^27.1.50":
+  version "27.1.50"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-react-lists/-/ej2-react-lists-27.1.50.tgz#cc094cac1c707d82fbb049382d4121d970e65b22"
+  integrity sha512-mgqEYloMsFxheNZEooEnD7vWpDiGKSowacBzJuAMILQfyZjsUkbj+3F07hDanvdKY2LXVxcXv8ax1bolVRnPtg==
+  dependencies:
+    "@syncfusion/ej2-base" "~27.1.50"
+    "@syncfusion/ej2-lists" "27.1.50"
     "@syncfusion/ej2-react-base" "~27.1.50"
 
 "@syncfusion/ej2-splitbuttons@~27.1.50":
@@ -1451,6 +1460,13 @@ foreground-child@^3.1.0:
   dependencies:
     cross-spawn "^7.0.0"
     signal-exit "^4.0.1"
+
+framer-motion@^11.11.9:
+  version "11.11.9"
+  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-11.11.9.tgz#a60ddf5abbd924812df923068628537a5c6ad8b9"
+  integrity sha512-XpdZseuCrZehdHGuW22zZt3SF5g6AHJHJi7JwQIigOznW4Jg1n0oGPMJQheMaKLC+0rp5gxUKMRYI6ytd3q4RQ==
+  dependencies:
+    tslib "^2.4.0"
 
 fs.realpath@^1.0.0:
   version "1.0.0"
