@@ -7,15 +7,22 @@ import {
 } from "@syncfusion/ej2-react-documenteditor";
 import { toast } from "sonner";
 import { PdfExporter } from "~/components/pdf-exporter";
+import { Table } from "lucide-react";
 
 DocumentEditorContainerComponent.Inject(Toolbar);
 
 export default function Home() {
+  // --- Variables
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null);
   const [variables, setVariables] = useState<{ name: string; value: string }[]>(
     [],
   );
   const [isDocumentLoaded, setIsDocumentLoaded] = useState(false);
+  const dummyData = [
+    { name: "John Doe", age: "30", country: "USA" },
+    { name: "Jane Smith", age: "25", country: "Canada" },
+    { name: "Alex Johnson", age: "28", country: "UK" },
+  ];
 
   // --- Functions
   const fetchVariables = async () => {
@@ -30,6 +37,74 @@ export default function Home() {
     } catch (error) {
       console.error("Erreur lors de la récupération des variables :", error);
       toast.error("Erreur lors de la récupération des variables.");
+    }
+  };
+
+  const convertHtmlToSfdt = async (htmlContent: string) => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/documenteditor/LoadString",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ content: htmlContent }),
+        },
+      );
+
+      if (response.ok) {
+        const sfdtData = await response.json();
+
+        containerRef.current?.documentEditor.editor.paste(sfdtData);
+        toast.success("Contenu HTML ajouté au document.");
+      } else {
+        toast.error("Erreur lors de la conversion du contenu HTML.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la conversion HTML en SFDT :", error);
+      toast.error("Erreur lors de la conversion HTML en SFDT.");
+    }
+  };
+
+  const addDummyDataToVariables = () => {
+    const tableHTML = `
+      <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; border-radius: 10%">
+        <thead style="background-color: #007BFF; color: white;">
+          <tr>
+            <th style="padding: 8px; text-align: left;background-color: #007BFF;">Name</th>
+            <th style="padding: 8px; text-align: left;background-color: #007BFF;">Age</th>
+            <th style="padding: 8px; text-align: left;background-color: #007BFF;">Country</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dummyData
+            .map(
+              (data, index) => `
+                <tr style="background-color: ${index % 2 === 0 ? "#f9f9f9" : "#ffffff"};">
+                  <td style="border: 1px solid #ddd; padding: 8px;">${data.name}</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">${data.age}</td>
+                  <td style="border: 1px solid #ddd; padding: 8px;">${data.country}</td>
+                </tr>
+              `,
+            )
+            .join("")}
+        </tbody>
+      </table>
+  `;
+
+    setVariables((prev) => [...prev, { name: "Table", value: tableHTML }]);
+    toast.success("Données fictives ajoutées aux variables.");
+  };
+
+  const applyReplacements = async () => {
+    if (containerRef.current && isDocumentLoaded) {
+      await fetchVariables();
+      replaceVariablesInDocument(
+        containerRef.current.documentEditor,
+        variables,
+      );
+      toast.success("Les variables ont été appliquées au document.");
     }
   };
 
@@ -50,17 +125,6 @@ export default function Home() {
         editor.search.searchResults.clear();
       }
     });
-  };
-
-  const applyReplacements = async () => {
-    if (containerRef.current && isDocumentLoaded) {
-      await fetchVariables();
-      replaceVariablesInDocument(
-        containerRef.current.documentEditor,
-        variables,
-      );
-      toast.success("Les variables ont été appliquées au document.");
-    }
   };
 
   useEffect(() => {
@@ -101,7 +165,11 @@ export default function Home() {
   const handleDragStart = (event: DragEvent) => {
     const target = event.target as HTMLElement;
     const variableValue = target.getAttribute("data-value");
-    if (variableValue) {
+
+    if (variableValue && variableValue.includes("<table")) {
+      event.dataTransfer?.setData("text/html", variableValue);
+      target.classList.add("de-drag-target");
+    } else if (variableValue) {
       event.dataTransfer?.setData("text/plain", variableValue);
       target.classList.add("de-drag-target");
     }
@@ -113,8 +181,13 @@ export default function Home() {
 
   const handleDrop = (event: DragEvent) => {
     event.preventDefault();
+    const html = event.dataTransfer?.getData("text/html");
     const text = event.dataTransfer?.getData("text/plain");
-    if (text && containerRef.current) {
+
+    console.log("HTML:", html);
+    if (html) {
+      convertHtmlToSfdt(html);
+    } else if (text && containerRef.current) {
       containerRef.current.documentEditor.editor.insertText(text);
     }
   };
@@ -130,7 +203,20 @@ export default function Home() {
       <h1 className="text-6xl">
         Office.js X <span className="text-blue-500">Wealthcome</span>
       </h1>
-      <PdfExporter container={containerRef.current} />
+
+      <div className="flex items-center gap-4 mt-4">
+        <PdfExporter container={containerRef.current} />
+        <button
+          onClick={() => addDummyDataToVariables()}
+          className="mt-4 px-4 py-2 hover:bg-green-700 bg-green-500 text-white rounded transition duration-300 ease-in-out group flex items-center gap-2"
+        >
+          Add HTML Table
+          <Table
+            size={18}
+            className="group-hover:rotate-6 transform transition duration-300 ease-in-out"
+          />
+        </button>
+      </div>
 
       <div className="flex flex-row gap-4 w-full">
         {isDocumentLoaded && (
@@ -166,7 +252,7 @@ export default function Home() {
             height="70vh"
             width="100%"
             ref={containerRef}
-            serviceUrl="https://ej2services.syncfusion.com/production/web-services/api/documenteditor/"
+            serviceUrl="http://localhost:5000/api/documenteditor/"
             enableToolbar={true}
           />
         </div>

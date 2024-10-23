@@ -13,6 +13,7 @@ import {
   DocumentEditorContainerComponent,
   ImageFormat,
 } from "@syncfusion/ej2-react-documenteditor";
+import { File } from "lucide-react";
 
 interface PdfExporterProps {
   container: DocumentEditorContainerComponent | null;
@@ -69,10 +70,14 @@ export const PdfExporter: React.FC<PdfExporterProps> = ({ container }) => {
 
   return (
     <button
-      className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
+      className="bg-blue-500 text-white px-4 py-2 mt-4 rounded transition duration-300 ease-in-out hover:bg-blue-600 group flex items-center gap-2"
       onClick={onClick}
     >
       Export
+      <File
+        size={18}
+        className="transform group-hover:rotate-6 transition duration-300 ease-in-out"
+      />
     </button>
   );
 };

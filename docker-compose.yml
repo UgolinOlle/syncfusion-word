@@ -1,9 +1,10 @@
-version: '3.4'
-
 services:
   word-processor-server:
-    image: syncfusion/word-processor-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
-      SYNCFUSION_LICENSE_KEY: "ORg4AjUWIQA/Gnt2UlhhQlVMfV5DQmJAYVF2R2dJflx6cVBMZVtBJAtUQF1hTX9TdEViWn9ecXZdQGNV"
+      SYNCFUSION_LICENSE_KEY: "Ngo9BigBOggjHTQxAR8/V1NDaF5cWWtCf1JpRGpGfV5ycEVHYlZUQXxaRU0DNHVRdkdnWH9cc3RQRmBZWUJ/Wko="
     ports:
-    - "6002:80"
+      - "5000:5000"
+
