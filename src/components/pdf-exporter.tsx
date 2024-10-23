@@ -14,12 +14,18 @@ import {
   ImageFormat,
 } from "@syncfusion/ej2-react-documenteditor";
 import { File } from "lucide-react";
+import { cn } from "~/lib/utils";
 
 interface PdfExporterProps {
   container: DocumentEditorContainerComponent | null;
+  isDisabled?: boolean;
 }
 
-export const PdfExporter: React.FC<PdfExporterProps> = ({ container }) => {
+export const PdfExporter: React.FC<PdfExporterProps> = ({
+  container,
+  isDisabled,
+}) => {
+  // --- Functions
   const onClick = () => {
     if (!container) return;
 
@@ -68,10 +74,17 @@ export const PdfExporter: React.FC<PdfExporterProps> = ({ container }) => {
     }
   };
 
+  // --- Render
   return (
     <button
-      className="bg-blue-500 text-white px-4 py-2 mt-4 rounded transition duration-300 ease-in-out hover:bg-blue-600 group flex items-center gap-2"
+      className={cn(
+        "text-white px-4 py-2 mt-4 rounded transition duration-300 ease-in-out group flex items-center gap-2",
+        !isDisabled
+          ? "bg-neutral-500 cursor-no-drop"
+          : "bg-blue-500 hover:bg-blue-600",
+      )}
       onClick={onClick}
+      disabled={!isDisabled}
     >
       Export
       <File

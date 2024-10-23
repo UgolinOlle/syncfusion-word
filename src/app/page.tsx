@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 import { PdfExporter } from "~/components/pdf-exporter";
 import { Table } from "lucide-react";
+import { cn } from "~/lib/utils";
 
 DocumentEditorContainerComponent.Inject(Toolbar);
 
@@ -205,10 +206,19 @@ export default function Home() {
       </h1>
 
       <div className="flex items-center gap-4 mt-4">
-        <PdfExporter container={containerRef.current} />
+        <PdfExporter
+          container={containerRef.current}
+          disabled={isDocumentLoaded}
+        />
         <button
           onClick={() => addDummyDataToVariables()}
-          className="mt-4 px-4 py-2 hover:bg-green-700 bg-green-500 text-white rounded transition duration-300 ease-in-out group flex items-center gap-2"
+          className={cn(
+            "mt-4 px-4 py-2 text-white rounded transition duration-300 ease-in-out group flex items-center gap-2",
+            !isDocumentLoaded
+              ? "bg-neutral-500 cursor-no-drop"
+              : "hover:bg-green-700 bg-green-500 ",
+          )}
+          disabled={!isDocumentLoaded}
         >
           Add HTML Table
           <Table
@@ -220,7 +230,7 @@ export default function Home() {
 
       <div className="flex flex-row gap-4 w-full">
         {isDocumentLoaded && (
-          <div id="listview" className="w-2/4 bg-white shadow p-4 rounded">
+          <div id="listview" className="w-2/4 bg-white shadow p-4 rounded mt-4">
             <h2 className="text-2xl font-semibold mb-4">Variables</h2>
             <div className="grid grid-cols-2 gap-2">
               <div className="font-bold">Key</div>
