@@ -7,130 +7,83 @@ import {
 } from "@syncfusion/ej2-react-documenteditor";
 import { toast } from "sonner";
 import { PdfExporter } from "~/components/pdf-exporter";
-import { Table } from "lucide-react";
-import { cn } from "~/lib/utils";
+import { TOOLBAR_ITEMS } from "~/lib/constants";
 
 DocumentEditorContainerComponent.Inject(Toolbar);
 
 export default function Home() {
-  // --- Variables
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null);
-  const [variables, setVariables] = useState<{ name: string; value: string }[]>(
-    [],
-  );
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState(false);
-  const dummyData = [
-    { name: "John Doe", age: "30", country: "USA" },
-    { name: "Jane Smith", age: "25", country: "Canada" },
-    { name: "Alex Johnson", age: "28", country: "UK" },
-  ];
 
   // --- Functions
-  const fetchVariables = async () => {
-    try {
-      const response = await fetch("/api/variables");
-      if (response.ok) {
-        const data = await response.json();
-        setVariables(data);
-      } else {
-        toast.error("Erreur lors de la récupération des variables.");
-      }
-    } catch (error) {
-      console.error("Erreur lors de la récupération des variables :", error);
-      toast.error("Erreur lors de la récupération des variables.");
+  const handleToolbarClick = (args: any) => {
+    switch (args.item.id) {
+      case "new":
+        containerRef.current?.documentEditor.openBlank();
+        setIsDocumentLoaded(true);
+        toast.success("Nouveau document créé avec succès.");
+        break;
+      case "open":
+        fileInputRef.current?.click();
+        break;
+      case "save":
+        containerRef.current?.documentEditor.save("sample", "Docx");
+        toast.success("Document sauvegardé avec succès.");
+        args.cancel = true;
+        break;
+      default:
+        break;
     }
   };
 
-  const convertHtmlToSfdt = async (htmlContent: string) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (file) {
+      await loadDocumentFromBackend(file);
+    }
+  };
+
+  const loadDocumentFromBackend = async (file: File) => {
     try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("clientId", "1");
+
       const response = await fetch(
-        "http://localhost:5000/api/documenteditor/LoadString",
+        "http://localhost:8000/api/v1/generate-dynamic-document",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: htmlContent }),
+          body: formData,
         },
       );
 
       if (response.ok) {
-        const sfdtData = await response.json();
+        const blob = await response.blob();
 
-        containerRef.current?.documentEditor.editor.paste(sfdtData);
-        toast.success("Contenu HTML ajouté au document.");
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "document.docx"; // Nom du fichier téléchargé
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        containerRef.current?.documentEditor.open(blob);
+        setIsDocumentLoaded(true);
+        toast.success("Document chargé avec succès.");
       } else {
-        toast.error("Erreur lors de la conversion du contenu HTML.");
+        toast.error("Erreur lors du chargement du document.");
       }
     } catch (error) {
-      console.error("Erreur lors de la conversion HTML en SFDT :", error);
-      toast.error("Erreur lors de la conversion HTML en SFDT.");
+      console.error("Erreur lors du chargement du document :", error);
+      toast.error("Erreur lors du chargement du document.");
     }
   };
-
-  const addDummyDataToVariables = () => {
-    const tableHTML = `
-      <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; border-radius: 10%">
-        <thead style="background-color: #007BFF; color: white;">
-          <tr>
-            <th style="padding: 8px; text-align: left;background-color: #007BFF;">Name</th>
-            <th style="padding: 8px; text-align: left;background-color: #007BFF;">Age</th>
-            <th style="padding: 8px; text-align: left;background-color: #007BFF;">Country</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${dummyData
-            .map(
-              (data, index) => `
-                <tr style="background-color: ${index % 2 === 0 ? "#f9f9f9" : "#ffffff"};">
-                  <td style="border: 1px solid #ddd; padding: 8px;">${data.name}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${data.age}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${data.country}</td>
-                </tr>
-              `,
-            )
-            .join("")}
-        </tbody>
-      </table>
-  `;
-
-    setVariables((prev) => [...prev, { name: "Table", value: tableHTML }]);
-    toast.success("Données fictives ajoutées aux variables.");
-  };
-
-  const applyReplacements = async () => {
-    if (containerRef.current && isDocumentLoaded) {
-      await fetchVariables();
-      replaceVariablesInDocument(
-        containerRef.current.documentEditor,
-        variables,
-      );
-      toast.success("Les variables ont été appliquées au document.");
-    }
-  };
-
-  const replaceVariablesInDocument = (
-    editor: any,
-    variables: { name: string; value: string }[],
-  ) => {
-    variables.forEach(({ name, value }) => {
-      const variablePattern = `${name}`;
-      editor.search.findAll(variablePattern);
-      const results = editor.search.searchResults;
-
-      if (results && results.length > 0) {
-        for (let i = 0; i < results.length; i++) {
-          editor.search.searchResults.index = i;
-          editor.editor.insertText(value);
-        }
-        editor.search.searchResults.clear();
-      }
-    });
-  };
-
-  useEffect(() => {
-    fetchVariables();
-  }, []);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -141,7 +94,6 @@ export default function Home() {
         container.documentEditor.focusIn();
       };
 
-      // Drag and Drop Events
       const listViewElement = document.getElementById("listview");
       const documentElement = container.documentEditor.element;
 
@@ -182,22 +134,12 @@ export default function Home() {
 
   const handleDrop = (event: DragEvent) => {
     event.preventDefault();
-    const html = event.dataTransfer?.getData("text/html");
     const text = event.dataTransfer?.getData("text/plain");
 
-    console.log("HTML:", html);
-    if (html) {
-      convertHtmlToSfdt(html);
-    } else if (text && containerRef.current) {
+    if (text && containerRef.current) {
       containerRef.current.documentEditor.editor.insertText(text);
     }
   };
-
-  useEffect(() => {
-    if (isDocumentLoaded) {
-      applyReplacements();
-    }
-  }, [isDocumentLoaded]);
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
@@ -205,57 +147,12 @@ export default function Home() {
         Office.js X <span className="text-blue-500">Wealthcome</span>
       </h1>
 
-      <div className="flex items-center gap-4 mt-4">
-        <PdfExporter
-          container={containerRef.current}
-          isDisabled={isDocumentLoaded}
-        />
-        <button
-          onClick={() => addDummyDataToVariables()}
-          className={cn(
-            "mt-4 px-4 py-2 text-white rounded transition duration-300 ease-in-out group flex items-center gap-2",
-            !isDocumentLoaded
-              ? "bg-neutral-500 cursor-no-drop"
-              : "hover:bg-green-700 bg-green-500 ",
-          )}
-          disabled={!isDocumentLoaded}
-        >
-          Add HTML Table
-          <Table
-            size={18}
-            className="group-hover:rotate-6 transform transition duration-300 ease-in-out"
-          />
-        </button>
-      </div>
+      <PdfExporter
+        container={containerRef.current}
+        isDisabled={!isDocumentLoaded}
+      />
 
       <div className="flex flex-row gap-4 w-full">
-        {isDocumentLoaded && (
-          <div id="listview" className="w-2/4 bg-white shadow p-4 rounded mt-4">
-            <h2 className="text-2xl font-semibold mb-4">Variables</h2>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="font-bold">Key</div>
-              <div className="font-bold">Value</div>
-              {variables.map((variable, index) => (
-                <React.Fragment key={index}>
-                  <div
-                    className="cursor-pointer bg-neutral-300 rounded-lg px-2 py-1 overflow-hidden text-ellipsis whitespace-nowrap"
-                    draggable
-                    data-value={variable.value}
-                  >
-                    {variable.name}
-                  </div>
-                  <div
-                    className="rounded-lg px-2 py-1 bg-blue-500 text-white cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap"
-                    draggable
-                    data-value={variable.value}
-                  >
-                    {variable.value}
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        )}
         <div className="flex-grow w-3/4 h-full mt-4">
           <DocumentEditorContainerComponent
             id="container"
@@ -263,10 +160,21 @@ export default function Home() {
             width="100%"
             ref={containerRef}
             serviceUrl="http://localhost:5000/api/documenteditor/"
+            // serviceUrl="https://ej2services.syncfusion.com/production/web-services/api/documenteditor/"
             enableToolbar={true}
+            toolbarItems={TOOLBAR_ITEMS}
+            toolbarClick={handleToolbarClick}
           />
         </div>
       </div>
+
+      {/* Input caché pour la sélection de fichier */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
     </div>
   );
 }
