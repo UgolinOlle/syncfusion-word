@@ -6,6 +6,7 @@ import {
   Toolbar,
 } from "@syncfusion/ej2-react-documenteditor";
 import { toast } from "sonner";
+
 import { PdfExporter } from "~/components/pdf-exporter";
 import { TOOLBAR_ITEMS } from "~/lib/constants";
 
@@ -32,6 +33,8 @@ export default function Home() {
         toast.success("Document sauvegardé avec succès.");
         args.cancel = true;
         break;
+      case "export":
+
       default:
         break;
     }
@@ -43,6 +46,7 @@ export default function Home() {
     const file = event.target.files?.[0];
 
     if (file) {
+      // containerRef.current?.documentEditor.open(file);
       await loadDocumentFromBackend(file);
     }
   };
@@ -50,6 +54,7 @@ export default function Home() {
   const loadDocumentFromBackend = async (file: File) => {
     try {
       const formData = new FormData();
+
       formData.append("file", file);
       formData.append("clientId", "1");
 
@@ -63,15 +68,6 @@ export default function Home() {
 
       if (response.ok) {
         const blob = await response.blob();
-
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "document.docx"; // Nom du fichier téléchargé
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
 
         containerRef.current?.documentEditor.open(blob);
         setIsDocumentLoaded(true);
@@ -168,7 +164,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Input caché pour la sélection de fichier */}
       <input
         type="file"
         ref={fileInputRef}
