@@ -4,7 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      SYNCFUSION_LICENSE_KEY: "Ngo9BigBOggjHTQxAR8/V1NDaF5cWWtCf1JpRGpGfV5ycEVHYlZUQXxaRU0DNHVRdkdnWH9cc3RQRmBZWUJ/Wko="
+      SYNCFUSION_LICENSE_KEY: "Ngo9BigBOggjHTQxAR8/V1NDaF1cX2hIfEx3THxbf1x0ZFNMZVlbQHBPMyBoS35RckRiWHZednFcRmJeVUZ3"
     ports:
-      - "5000:5000"
-
+      - "5001:5000"

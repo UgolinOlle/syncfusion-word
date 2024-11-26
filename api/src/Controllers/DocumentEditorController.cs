@@ -18,6 +18,7 @@ using BitMiracle.LibTiff.Classic;
 namespace SyncfusionDocument.Controllers
 {
     [Route("api/[controller]")]
+    [EnableCors("AllowAllOrigins")]
     public class DocumentEditorController : Controller
     {
         private readonly IWebHostEnvironment  _hostingEnvironment;
